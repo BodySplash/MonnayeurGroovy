@@ -12,22 +12,19 @@ class Monnayeur {
     }
 
     def découpe(pièce, possibilités) {
-        possibilités.collectMany([], {
-            if (pièce.vers(it.reste) > 0) {
-                def combinatoirs = []
-                if (pièce != Pieces.PENNIES) {
-                    (1..pièce.vers(it.reste)).each {
-                        multiple ->
-                            combinatoirs << [combinaison: it.combinaison.clone() << [(pièce.toString()): multiple], reste: it.reste - multiple * pièce.valeur]
-                    }
-                    combinatoirs << [combinaison: it.combinaison.clone(), reste: it.reste]
-                } else {
-                    combinatoirs << [combinaison:  it.combinaison.clone() << [(pièce.toString()) : it.reste], reste: 0]
+        possibilités.collectMany {
+            possibilité ->
+                if (pièce.vers(possibilité.reste) <= 0) {
+                    return [possibilité]
                 }
-                return combinatoirs
-            }
-            return [it]
-        })
+                if (pièce == Pieces.PENNIES) {
+                    return [[combinaison: possibilité.combinaison.clone() << [(pièce.toString()): possibilité.reste], reste: 0]]
+                }
+                (1..pièce.vers(possibilité.reste)).collect([possibilité]) {
+                    multiple ->
+                         [combinaison: possibilité.combinaison.clone() << [(pièce.toString()): multiple], reste: possibilité.reste - multiple * pièce.valeur]
+                }
+        }
     }
 
     private enum Pieces {
